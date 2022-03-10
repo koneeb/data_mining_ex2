@@ -9,7 +9,7 @@ The figure shows Average Boardings by the Hour of the Day for each of
 the three months: September, October, and November, faceted by the Day
 of the week. At a first glance, it can be seen that the Average
 Boardings are considerably lower and flatter for the weekend (Sat-Sun)
-as compared to the weekdays (Mon\_Fri), which peak between 14:00-16:30
+as compared to the weekdays (Mon-Fri), which peak between 14:00-16:30
 for most weekdays for all months. This could be attributed to campus
 classes being held on the weekdays and not on the weekend. Furthermore,
 the number of students and faculty boarding the bus peaks between
@@ -17,11 +17,11 @@ the number of students and faculty boarding the bus peaks between
 ends for faculty and classes end for students. The lower average
 boardings on Mondays in September could be attributed to the holiday
 observed on Labor Day which is always the first Monday of September. The
-absences on Labor Day could be lowering the average baordings on Mondays
+absences on Labor Day could be lowering the average boardings on Mondays
 for the whole month. Similarly, the lower average boardings on
 Wednesday, Thursday, and Friday in November could be a result of the
-Thanksgiving break which usually falls on these weekdays, thus the break
-lowers the average for these weekdays in November.
+Thanksgiving break which usually falls on these weekdays, thus lowering
+the average for these weekdays in November.
 
 ### Part 2: Boardings vs. Temperature
 
@@ -32,13 +32,13 @@ vs. Temperature (°F) in each 15-minute window, faceted by hour of the
 day (24-hr) with points sorted by weekday or weekend. Holding hour of
 the day and weekend status constant, temperature does not appear to have
 any noticeable effects on the average number of UT students riding the
-bus since the data point remain fairly constant with changes in
+bus since the data points remain fairly constant with changes in
 temperature.
 
-Problem 2: Linear model vs KNN
-------------------------------
+Problem 2: Linear model vs. KNN
+-------------------------------
 
-The linear model chosen to compete against the knn models includes the
+The linear model chosen to compete against the knn model includes the
 features lotSize, livingArea, bedrooms, age, landValue, bathrooms,
 heating, fuel, centralAir and the interactions: (lotSize^2) \* bedrooms,
 (livingArea^2) \* rooms \* bedrooms + (age^2) \* landValue. This model
@@ -49,11 +49,11 @@ The cross validated RMSE for the knn model with the same features as the
 chosen linear model was much higher than that of the chosen linear
 model, thus, the chosen linear model outperformed the knn model. It is
 possible that the data points could not be clustered together because
-all of the features are important in predicting the housing price. This
-is plausibly why the knn model performed poorly and had difficulty
-creating distinguishable clusters.
+all features are important in predicting the housing price. This is
+plausibly why the knn model performed poorly and had difficulty creating
+distinguishable clusters.
 
-Although the perforance of the linear model is relatively better than
+Although the performance of the linear model is relatively better than
 that of the knn model, it is not great in absolute terms based on the
 adjusted R-squared which reflects that, approximately only 61% of the
 variation in the prices is described by the features in the model.
@@ -67,6 +67,7 @@ Problem 3
 ### Bar plot of Default probability
 
 ![](data_mining_ex2_files/figure-markdown_strict/unnamed-chunk-5-1.png)
+
 The bar plot seems to be counter-intuitive, the better the borrowers’
 rating, the higher the probability of defaulting. It seems like the data
 chosen is not appropriate for predicting reasonable default
@@ -86,8 +87,8 @@ coefficients on historypoor and historyterrible are negative which means
 that worse credit ratings decrease the probability of default. Clearly,
 that is incorrect. Hence, it can be concluded that the bank’s
 retrospective sampling method is unsuitable for predictive modeling as
-it introduces bias in the model. The bank should adopt random sampling
-to avoid bias.
+it introduces bias in the model. Therefore, the bank should adopt random
+sampling to avoid bias.
 
 Problem 4
 ---------
@@ -96,30 +97,31 @@ Problem 4
 
     ## [1] "out-of-sample TPR of baseline1"
 
-    ## [1] 0.2471264
+    ## [1] 0.2580195
 
     ## [1] "out-of-sample TPR of baseline2"
 
-    ## [1] 0.6422414
+    ## [1] 0.6276151
 
     ## [1] "out-of-sample TPR of baseline3"
 
-    ## [1] 0.6364943
+    ## [1] 0.6262204
 
     ## [1] "out-of-sample TPR difference between baseline3 and baseline1"
 
-    ## [1] 0.3893678
+    ## [1] 0.3682008
 
     ## [1] "out-of-sample TPR difference between baseline3 and baseline2"
 
-    ## [1] -0.005747126
+    ## [1] -0.0013947
 
 The model baseline1 only uses market\_segment, adults, customer\_type,
 and is\_repeated\_guest variables as features. The model baseline2 uses
 all the possible predictors except the arrival\_date variable. The model
 baseline3 uses all the possible predictors except the arrival\_date
 variable and includes the interaction between adults and
-average\_daily\_rate.
+average\_daily\_rate and the interaction among adults, customer\_type,
+and meal.
 
 It can be seen that baseline3 gives the highest out-of-sample True
 Positive Rate (TPR) at the probability threshold of 0.13. The
@@ -136,9 +138,10 @@ thresholds.
 
 ![](data_mining_ex2_files/figure-markdown_strict/unnamed-chunk-8-1.png)
 
-The ROC shows that the combinations of high True Positive Rate and low
-False Positive Rate lie between the probability thresholds of 0.1 and
-0.2. Therefore, the chosen probability threshold of 0.13 is reasonable.
+The ROC curve shows that the combinations of high True Positive Rate and
+low False Positive Rate lie between the probability thresholds of 0.1
+and 0.2. Therefore, the chosen probability threshold of 0.13 is
+reasonable.
 
 ### Model Validation: Step 2
 
@@ -151,7 +154,7 @@ roughly following the same pattern as the Actual line (red). However,
 there are significant and frequent gaps between the two lines showing
 the failure of the model to make accurate predictions.
 
-    ## [1] 6.008328
+    ## [1] 4.472136
 
 Nevertheless, the RMSE is dispalyed for the difference in the Actual and
 the Expected number of booking with children. The RMSE lies between 3.5
