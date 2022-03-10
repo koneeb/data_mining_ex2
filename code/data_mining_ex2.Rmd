@@ -1,0 +1,371 @@
+---
+title: "ECO395M: Exercise 2"
+author: "Kashaf Oneeb"
+date: "3/4/2022"
+output: md_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Problem 1: Visualization
+
+### Part 1: Average Boardings
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(here)
+library(lemon)
+
+
+
+here::i_am("code/data_mining_ex2.Rmd")
+
+# Recode the categorical variables in sensible, rather than alphabetical, order
+capmetro <- read.csv(here("data/capmetro_UT.csv")) %>%
+            mutate(day_of_week = factor(day_of_week,
+            levels=c("Mon", "Tue", "Wed","Thu", "Fri", "Sat", "Sun")),
+            month = factor(month,
+            levels=c("Sep", "Oct","Nov")))
+  
+  
+# Group average boardings by hour of the day, day of week, and month
+group_cols <- c("hour_of_day", "day_of_week", "month")
+avg_board <- capmetro %>%
+             group_by(across(all_of(group_cols))) %>%
+             summarize(avg_boardings = mean(boarding, na.rm =TRUE))
+
+# Plot a line graph of average monthly boardings faceted by day of week
+p_avg_boardings <- ggplot(avg_board) +
+                   geom_line(aes(x=hour_of_day, y=avg_boardings, group=month, color=month)) +
+                   facet_rep_wrap(~day_of_week, repeat.tick.labels = TRUE) +
+                   scale_x_continuous(breaks=seq(6, 22, 2)) +
+                   labs(title = "Average boardings by the hour of the day",
+                   x = "Hour of the Day (24-hr)",
+                   y = "Average Boardings",
+                   col = "Month",
+                   caption = "A line graph of Average Boardings for Sep-Nov in 2018 faceted by the Day of week." )
+p_avg_boardings
+```
+Figure 1 shows Average Boardings by the Hour of the Day for each of the three months: September, October, and November, faceted by the Day of the week. At a first glance, it can be seen that the Average Boardings are considerably lower and flatter for the weekend (Sat-Sun) as compared to the weekdays (Mon_Fri), which peak between 14:00-16:30 for most weekdays for all months. This could be attributed to campus classes being held on the weekdays and not on the weekend. Furthermore, the number of students and faculty boarding the bus peaks between 14:00-16:30 on weekdays, because typically that is when the work day ends for faculty and classes end for students.
+The lower average boardings on Mondays in September could be attributed to the holiday observed on Labor Day which is always the first Monday of September. The absences on Labor Day could be lowering the average baordings on Mondays for the whole month. Similarly, the lower average boardings on Wednesday, Thursday, and Friday in November could be a result of the Thanksgiving break which usually falls on these weekdays, thus the break lowers the average for these weekdays in November.
+
+### Part 2: Boardings vs. Temperature
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+
+# Plot a scatter plot of boardings vs. temperature faceted by hour of the day
+p_board_temp <- ggplot(capmetro) +
+                   geom_point(aes(x=temperature, y=boarding, group=weekend, color=weekend), size = 1) +
+                   facet_rep_wrap(~hour_of_day, repeat.tick.labels = TRUE) +
+                   xlim(0, 100) +
+                   scale_color_hue(direction = 1) +
+                   labs(title = "Boardings by Temperature and Hour of the Day",
+                   x = "Temperature (°F)",
+                   y = "Boardings",
+                   col = "Day of the Week",
+                   caption = "A scatter plot of Boardings against Temperature faceted by the hour of the day." ) +
+                   theme_light()
+
+
+p_board_temp
+```
+
+Figure 2 displays a panel of scatter plots showing Boardings vs. Temperature (°F) in each 15-minute window, faceted by hour of the day (24-hr) with points sorted by weekday or weekend. Holding hour of the day and weekend status constant, temperature does not appear to have any noticeable effects on the average number of UT students riding the bus since the data point remain fairly constant with changes in temperature.
+
+## Problem 2: Linear model vs KNN
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(modelr)
+library(rsample)
+library(mosaic)
+library(caret)
+
+
+data(SaratogaHouses)
+
+saratoga_split = initial_split(SaratogaHouses, prop = 0.8)
+saratoga_train = training(saratoga_split)
+saratoga_test = testing(saratoga_split)
+  
+
+#Build a linear model that outperforms the medium model
+lm_medium <- lm(price ~ . - pctCollege - sewer - waterfront - landValue - 
+                  newConstruction, data=saratoga_train)
+
+lm1 <- lm(price ~ lotSize*livingArea*bedrooms + age*landValue + 
+                  bathrooms + heating + fuel + centralAir, 
+                  data=saratoga_train)
+
+lm2 <- lm(price ~ (lotSize^2)*bedrooms + (livingArea^2)*rooms*bedrooms +
+                  (age^2)*landValue + bathrooms + fuel + centralAir, 
+                  data=saratoga_train)
+
+rmse_sim = do(10)*{
+  saratoga_split = initial_split(SaratogaHouses, prop = 0.8)
+  saratoga_train = training(saratoga_split)
+  saratoga_test = testing(saratoga_split)
+  
+  lm_medium = update(lm_medium, data=saratoga_train)
+  lm1 = update(lm1, data=saratoga_train)
+  lm2 = update(lm2, data=saratoga_train)
+  
+
+  model_errors = c(rmse(lm_medium, saratoga_test), rmse(lm1, saratoga_test), rmse(lm2, saratoga_test))
+  
+
+  model_errors
+}
+
+# Average performance across the splits
+ rmse_means_lm <- colMeans(rmse_sim)
+
+# Since lm2 has the lowest out-of-sample RMSE, it is chosen to compete against the knn model
+
+```
+
+The linear model chosen to compete against the knn models includes the features lotSize, livingArea, bedrooms, age, landValue, bathrooms, heating, fuel, centralAir and the interactions: (lotSize^2) * bedrooms + (livingArea^2) * rooms * bedrooms + (age^2) * landValue. This model outperformed the medium model which included all features except for pctCollege, sewer, waterfront, landValue, and newConstruction.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+
+#Build a KNN model
+rmse_knn_sim = do(10)*{
+
+  saratoga_split1 = initial_split(SaratogaHouses, prop = 0.8)
+  saratoga_train1 = training(saratoga_split1)
+  saratoga_test1 = testing(saratoga_split1)
+  
+
+  
+  # x_train = model.matrix(~ . - (price +sewer + waterfront + newConstruction) - 1, data=saratoga_train1)
+  # x_test = model.matrix(~ . - (price+ sewer + waterfront + newConstruction) - 1, data=saratoga_test1)
+  x_train = model.matrix(~ lotSize + bedrooms + livingArea + rooms + age + landValue +
+                           bathrooms + fuel + centralAir - 1, data=saratoga_train1)
+  
+  x_test = model.matrix(~ lotSize + bedrooms + livingArea + rooms + age + landValue +
+                           bathrooms + fuel + centralAir  - 1, data=saratoga_test1)
+
+  y_train <- saratoga_train1$price
+  y_test <- saratoga_test1$price
+
+  pre_process <- preProcess(x_train, method=c("center", "scale"))
+  scale_xtrain <- predict(pre_process, x_train)
+  scale_xtest <- predict(pre_process, x_test)
+  
+  saratoga_train_df <- data.frame(y_train, scale_xtrain)
+  saratoga_test_df <- data.frame(y_test, scale_xtest)
+
+
+  train_control <- trainControl(method = "cv", number = 10)
+  
+  knn_fit <- train(y_train ~ .,
+               data = saratoga_train_df,
+               method = "knn",
+               trControl = train_control)
+  
+  knn_fit
+  
+  y_predict <- predict(knn_fit, saratoga_test_df)
+  
+  knn_errors = c(RMSE(y_test, y_predict))
+}
+
+rmse_mean_knn <- colMeans(rmse_knn_sim)
+```
+The cross validated RMSE for the knn model with the same features as the chosen linear model was much higher than that of the chosen linear model, thus, the chosen linear model outperformed the knn model. It is possible that the data points could not be clustered together because all of the features are important in predicting the housing price. This is plausibly why the knn model performed poorly and had difficulty creating distinguishable clusters.
+
+Although the perforance of the linear model is relatively better than that of the knn model, it is not great in absolute terms based on the adjusted R-squared which reflects that, approximately only 61% of the variation in the prices is described by the features in the model. Despite that, the tax authority should include the features specified in the chosen linear model as they seem to give the lowest RMSE among the models observed.
+
+## Problem 3
+### Bar plot of Default probability
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+library(tidyverse)
+
+german_credit <- read.csv(here("data/german_credit.csv"))
+
+# Build a bar plot of Default probability by History
+
+counts <- german_credit %>%
+           group_by(history) %>%
+           summarize(prob_default = mean(Default, na.rm =TRUE))
+
+p_prob_default <-barplot(counts$prob_default, names.arg = counts$history, ylim= c(0,0.7),
+                 main = "Default Probability by Borrowers' Credit Rating (History)",
+                 xlab = "Borrowers' Credit Rating (History)",
+                 ylab = "Default Probability")
+p_prob_default
+```
+The bar plot seems to be counter-intuitive, the better the borrowers' rating, the higher the probability of defaulting. It seems like the data chosen is not appropriate for predicting reasonable default probabilities.
+### GLM Coefficients
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+
+# Build a logistic regression model for predicting Default probability
+
+logit_default <- glm(Default~duration + amount + installment + age + history + purpose + foreign,
+             data = german_credit,
+             family=binomial())
+
+coef(logit_default) %>% round(2)
+```
+The GLM model reflects the same pattern shown in the bar plot. The coefficients on historypoor and historyterrible are negative which means that worse credit ratings decrease the probability of default. Clearly, that is incorrect. Hence, it can be concluded that the bank's retrospective sampling method is unsuitable for predictive modeling as it introduces bias in the model. The bank should adopt random sampling to avoid bias.
+## Problem 4
+
+### Model building
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+
+hotels_dev <- read.csv(here("data/hotels_dev.csv"))
+
+hotels_dev1 <- hotels_dev %>% mutate_if(is.character, as.factor)
+
+hotels_dev_split = initial_split(hotels_dev1, prop = 0.8)
+hotels_dev_train = training(hotels_dev_split) 
+hotels_dev_test = testing(hotels_dev_split) 
+
+
+
+# Specify three linear models
+baseline1 <- glm(children ~ market_segment + adults + customer_type +
+                  is_repeated_guest, data=hotels_dev_train,
+                  family=binomial)
+
+baseline2 <- glm(children ~ . - arrival_date, data=hotels_dev_train,
+                  family=binomial)
+
+
+baseline3 <- glm(children ~ . - arrival_date  +
+                  adults*average_daily_rate, data=hotels_dev_train,
+                  family=binomial)
+
+# Compare out-of-sample performance of linear models
+
+# baseline1
+phat_baseline1 = predict(baseline1, hotels_dev_test, type="response")
+yhat_baseline1 = ifelse(phat_baseline1 > 0.13, 1, 0)
+confusion_baseline1 = table(y = hotels_dev_test$children, yhat = yhat_baseline1)
+
+# baseline2
+phat_baseline2 = predict(baseline2, hotels_dev_test, type="response")
+yhat_baseline2 = ifelse(phat_baseline2 >= 0.13, 1, 0)
+confusion_baseline2 = table(y = hotels_dev_test$children, yhat = yhat_baseline2)
+
+# baseline3
+phat_baseline3 = predict(baseline3, hotels_dev_test, type="response")
+yhat_baseline3 = ifelse(phat_baseline3 >= 0.13, 1, 0)
+confusion_baseline3 = table(y = hotels_dev_test$children, yhat = yhat_baseline3)
+
+print("out-of-sample TPR of baseline1")
+confusion_baseline1[4]/(confusion_baseline1[2]+confusion_baseline1[4])
+
+print("out-of-sample TPR of baseline2")
+confusion_baseline2[4]/(confusion_baseline2[2]+confusion_baseline2[4])
+
+print("out-of-sample TPR of baseline3")
+confusion_baseline3[4]/(confusion_baseline3[2]+confusion_baseline3[4])
+
+print("out-of-sample TPR difference between baseline3 and baseline1")
+confusion_baseline3[4]/(confusion_baseline3[2]+confusion_baseline3[4]) - confusion_baseline1[4]/(confusion_baseline1[2]+confusion_baseline1[4])
+
+print("out-of-sample TPR difference between baseline3 and baseline2")
+confusion_baseline3[4]/(confusion_baseline3[2]+confusion_baseline3[4]) -
+confusion_baseline2[4]/(confusion_baseline2[2]+confusion_baseline2[4])
+
+
+```
+baseine1 only uses market_segment, adults, customer_type, and is_repeated_guest variables as features.
+baseline2 uses all the possible predictors except the arrival_date variable.
+baseline3 uses all the possible predictors except the arrival_date variable and includes the interaction between adults and average_daily_rate.
+
+It can be seen that baseline3 gives the highest out-of-sample True Positive Rate (TPR) at the probability threshold of 0.13. The out-of-sample TPR difference between baseline3 and baseline1 reflects that baseline3 significantly outperforms baseline1. The out-of-sample TPR difference between baseline3 and baseline2 shows that baseline3 outperforms baseline2 as well, but by a much smaller margin.
+
+### Model Validation: Step 1
+
+To validate the model baseline3, a fresh data set "hotels_val.csv" will be utilized to build a ROC curve for all possible probability thresholds. 
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+
+hotels_val <- read.csv(here("data/hotels_val.csv"))
+
+
+# Plot the ROC curve for all possible probability thresholds
+tpr = c()
+fpr = c()
+threshold = c()
+interval = seq(0,1,0.01)
+
+for (t in interval) {
+  threshold = t
+  probhat_test = predict(baseline3, hotels_val, type="response")
+  yhat_test = ifelse(probhat_test > threshold, 1, 0)
+  confusion_val = table(y=hotels_val$children, yhat=yhat_test)
+  tpr_test = confusion_val[4]/(confusion_val[2]+confusion_val[4])
+  fpr_test = confusion_val[3]/(confusion_val[1]+confusion_val[3])
+  tpr = c(tpr, tpr_test)
+  fpr = c(fpr, fpr_test)
+  threshold = c(threshold, t)
+}
+
+roc_curve = data.frame(cbind(threshold, tpr, fpr))
+
+ggplot(data = roc_curve, mapping = aes(x = fpr, y = tpr)) + 
+  geom_line() +
+  labs(title = "ROC curve", 
+       x ="False Positive Rate",
+       y ="True Positive Rate")
+
+
+```
+
+The ROC shows that the combinations of high True Positive Rate and low False Positive Rate lie between the probability thresholds of 0.1 and 0.2. Therefore, the chosen probability threshold of 0.13 is reasonable. 
+
+### Model Validation: Step 2
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+library(caret)
+N = nrow(hotels_val)
+K = 20
+
+fold_id = rep_len(1:K, N) 
+fold_id = sample(fold_id, replace=FALSE) 
+
+hotels_val_fold = cbind(hotels_val, fold_id)
+children_expected = c()
+children_actual = c()
+fold = seq(1:20)
+
+for(i in 1:K) {
+hotels_val_folds = hotels_val_fold %>% 
+  filter(fold_id == i)
+phat_val = predict(baseline3, hotels_val_folds, type="response")
+phat_val_sum = sum(phat_val)
+children_expected = c(children_expected, phat_val_sum)
+children_actual_sum = sum(hotels_val_folds$children)
+children_actual = c(children_actual, children_actual_sum)
+
+}
+
+
+
+hotels_val_fold_df = data.frame(cbind(fold, children_expected, children_actual))
+
+rmse_val = c(RMSE(children_actual, children_actual_sum))
+
+colors <- c("children_expected" = "blue", "children_actual" = "red")
+
+p_fold_performance <- ggplot(hotels_val_fold_df, aes(x = fold)) +
+  geom_line(aes(y = children_expected), color = "blue") +
+  geom_line(aes(y = children_actual), color = "red") +
+  labs(title="Actual vs. Expected number of bookings with children",
+       y="Number of bookings with children",
+       x="Folds",
+       caption="Red line: Expected number of booking with children. Blue line: Actual number of bookings with children")
+ 
+p_fold_performance
+
+```
+The red line shows the Actual number of bookings with children, whereas the blue line shows the Expected number of bookings with children obtained from baseline3. It can be seen that the Expected line (blue) is roughly following the same pattern as the Actual line (red). However, there are significant and frequent gaps between the two lines showing the failure of the model to make accurate predictions.
+```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+rmse_val
+```
+Nevertheless, the RMSE is dispalyed for the difference in the Actual and the Expected number of booking with children. The RMSE lies between 3.5 and 4 which is a low number, therefore, the model performance is adequate.
