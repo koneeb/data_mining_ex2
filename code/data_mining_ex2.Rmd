@@ -48,7 +48,8 @@ p_avg_boardings <- ggplot(avg_board) +
                    caption = "A line graph of Average Boardings for Sep-Nov in 2018 faceted by the Day of week." )
 p_avg_boardings
 ```
-Figure 1 shows Average Boardings by the Hour of the Day for each of the three months: September, October, and November, faceted by the Day of the week. At a first glance, it can be seen that the Average Boardings are considerably lower and flatter for the weekend (Sat-Sun) as compared to the weekdays (Mon_Fri), which peak between 14:00-16:30 for most weekdays for all months. This could be attributed to campus classes being held on the weekdays and not on the weekend. Furthermore, the number of students and faculty boarding the bus peaks between 14:00-16:30 on weekdays, because typically that is when the work day ends for faculty and classes end for students.
+
+The figure shows Average Boardings by the Hour of the Day for each of the three months: September, October, and November, faceted by the Day of the week. At a first glance, it can be seen that the Average Boardings are considerably lower and flatter for the weekend (Sat-Sun) as compared to the weekdays (Mon_Fri), which peak between 14:00-16:30 for most weekdays for all months. This could be attributed to campus classes being held on the weekdays and not on the weekend. Furthermore, the number of students and faculty boarding the bus peaks between 14:00-16:30 on weekdays, because typically that is when the work day ends for faculty and classes end for students.
 The lower average boardings on Mondays in September could be attributed to the holiday observed on Labor Day which is always the first Monday of September. The absences on Labor Day could be lowering the average baordings on Mondays for the whole month. Similarly, the lower average boardings on Wednesday, Thursday, and Friday in November could be a result of the Thanksgiving break which usually falls on these weekdays, thus the break lowers the average for these weekdays in November.
 
 ### Part 2: Boardings vs. Temperature
@@ -71,7 +72,7 @@ p_board_temp <- ggplot(capmetro) +
 p_board_temp
 ```
 
-Figure 2 displays a panel of scatter plots showing Boardings vs. Temperature (°F) in each 15-minute window, faceted by hour of the day (24-hr) with points sorted by weekday or weekend. Holding hour of the day and weekend status constant, temperature does not appear to have any noticeable effects on the average number of UT students riding the bus since the data point remain fairly constant with changes in temperature.
+The figure displays a panel of scatter plots showing Boardings vs. Temperature (°F) in each 15-minute window, faceted by hour of the day (24-hr) with points sorted by weekday or weekend. Holding hour of the day and weekend status constant, temperature does not appear to have any noticeable effects on the average number of UT students riding the bus since the data point remain fairly constant with changes in temperature.
 
 ## Problem 2: Linear model vs KNN
 
@@ -126,7 +127,7 @@ rmse_sim = do(10)*{
 
 ```
 
-The linear model chosen to compete against the knn models includes the features lotSize, livingArea, bedrooms, age, landValue, bathrooms, heating, fuel, centralAir and the interactions: (lotSize^2) * bedrooms + (livingArea^2) * rooms * bedrooms + (age^2) * landValue. This model outperformed the medium model which included all features except for pctCollege, sewer, waterfront, landValue, and newConstruction.
+The linear model chosen to compete against the knn models includes the features lotSize, livingArea, bedrooms, age, landValue, bathrooms, heating, fuel, centralAir and the interactions: (lotSize^2) * bedrooms, (livingArea^2) * rooms * bedrooms + (age^2) * landValue. This model outperformed the medium model which included all features except for pctCollege, sewer, waterfront, landValue, and newConstruction.
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
 
@@ -195,10 +196,11 @@ p_prob_default <-barplot(counts$prob_default, names.arg = counts$history, ylim= 
                  main = "Default Probability by Borrowers' Credit Rating (History)",
                  xlab = "Borrowers' Credit Rating (History)",
                  ylab = "Default Probability")
-p_prob_default
 ```
 The bar plot seems to be counter-intuitive, the better the borrowers' rating, the higher the probability of defaulting. It seems like the data chosen is not appropriate for predicting reasonable default probabilities.
+
 ### GLM Coefficients
+
 ```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
 
 # Build a logistic regression model for predicting Default probability
@@ -210,6 +212,7 @@ logit_default <- glm(Default~duration + amount + installment + age + history + p
 coef(logit_default) %>% round(2)
 ```
 The GLM model reflects the same pattern shown in the bar plot. The coefficients on historypoor and historyterrible are negative which means that worse credit ratings decrease the probability of default. Clearly, that is incorrect. Hence, it can be concluded that the bank's retrospective sampling method is unsuitable for predictive modeling as it introduces bias in the model. The bank should adopt random sampling to avoid bias.
+
 ## Problem 4
 
 ### Model building
@@ -273,9 +276,10 @@ confusion_baseline2[4]/(confusion_baseline2[2]+confusion_baseline2[4])
 
 
 ```
-baseine1 only uses market_segment, adults, customer_type, and is_repeated_guest variables as features.
-baseline2 uses all the possible predictors except the arrival_date variable.
-baseline3 uses all the possible predictors except the arrival_date variable and includes the interaction between adults and average_daily_rate.
+
+The model baseline1 only uses market_segment, adults, customer_type, and is_repeated_guest variables as features.
+The model baseline2 uses all the possible predictors except the arrival_date variable.
+The model baseline3 uses all the possible predictors except the arrival_date variable and includes the interaction between adults and average_daily_rate.
 
 It can be seen that baseline3 gives the highest out-of-sample True Positive Rate (TPR) at the probability threshold of 0.13. The out-of-sample TPR difference between baseline3 and baseline1 reflects that baseline3 significantly outperforms baseline1. The out-of-sample TPR difference between baseline3 and baseline2 shows that baseline3 outperforms baseline2 as well, but by a much smaller margin.
 
@@ -364,8 +368,12 @@ p_fold_performance <- ggplot(hotels_val_fold_df, aes(x = fold)) +
 p_fold_performance
 
 ```
+
 The red line shows the Actual number of bookings with children, whereas the blue line shows the Expected number of bookings with children obtained from baseline3. It can be seen that the Expected line (blue) is roughly following the same pattern as the Actual line (red). However, there are significant and frequent gaps between the two lines showing the failure of the model to make accurate predictions.
+
 ```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
 rmse_val
 ```
+
 Nevertheless, the RMSE is dispalyed for the difference in the Actual and the Expected number of booking with children. The RMSE lies between 3.5 and 4 which is a low number, therefore, the model performance is adequate.
+
