@@ -365,7 +365,7 @@ p_fold_performance <- ggplot(hotels_val_fold_df, aes(x = fold)) +
   labs(title="Actual vs. Expected number of bookings with children",
        y="Number of bookings with children",
        x="Folds",
-       caption="Blue line: Expected number of booking with children. Red line: Actual number of bookings with children.")
+       caption="Blue line: Expected number of bookings with children. Red line: Actual number of bookings with children.")
  
 p_fold_performance
 
