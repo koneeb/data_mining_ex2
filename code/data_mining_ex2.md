@@ -97,23 +97,23 @@ Problem 4
 
     ## [1] "out-of-sample TPR of baseline1"
 
-    ## [1] 0.2307692
+    ## [1] 0.2368421
 
     ## [1] "out-of-sample TPR of baseline2"
 
-    ## [1] 0.6585695
+    ## [1] 0.5900277
 
     ## [1] "out-of-sample TPR of baseline3"
 
-    ## [1] 0.6545209
+    ## [1] 0.5914127
 
     ## [1] "out-of-sample TPR difference between baseline3 and baseline1"
 
-    ## [1] 0.4237517
+    ## [1] 0.3545706
 
     ## [1] "out-of-sample TPR difference between baseline3 and baseline2"
 
-    ## [1] -0.004048583
+    ## [1] 0.001385042
 
 The model baseline1 only uses market\_segment, adults, customer\_type,
 and is\_repeated\_guest variables as features. The model baseline2 uses
@@ -154,9 +154,9 @@ roughly following the same pattern as the Actual line (red). However,
 there are significant and frequent gaps between the two lines showing
 the failure of the model to make accurate predictions.
 
-    ## [1] 4.898979
+    ## [1] 4.1833
 
 Nevertheless, the RMSE is dispalyed for the difference in the Actual and
-the Expected number of booking with children. The RMSE lies between 3.5
-and 4 which is a low number, therefore, the model performance is
+the Expected number of booking with children. The RMSE lies between 3
+and 5 which is a low number, therefore, the model performance is
 adequate.
